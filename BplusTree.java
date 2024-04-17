@@ -3,7 +3,7 @@ import java.util.*;
 public class BplusTree {
     private static Node root;
     private int order;
-    public BplusTree( Set<Integer> records, int order) {
+    public BplusTree( List<Integer> records, int order) {
         this.order = order;
         root = new Node(true);
         for(int record: records) {
@@ -25,12 +25,12 @@ public class BplusTree {
             }
             else {
                 // create new leaf
-                System.out.println("splitting due to overflow");
+                System.out.println("splitting leaf node due to overflow");
                 Node newNode = new Node(true);
                 int index = (order+1)/2;
                 List<Integer> newKeys = new LinkedList<>();
                 List<Integer> keys = curr.keys;
-                int firstSecondHalfKey = keys.get(index);
+                int keyForParent = keys.get(index);
                 while(keys.size() > index) {
                     newKeys.add(keys.get(index));
                     keys.remove(index);
@@ -52,8 +52,8 @@ public class BplusTree {
                 System.out.println("current leaf node points to : " + curr.pointers.get(0));
                 System.out.println("sibling leaf node points to: " + newNode.pointers);
 
-                if(curr == root) createRoot(curr, newNode, firstSecondHalfKey);
-                return new Sibling(newNode, firstSecondHalfKey);
+                if(curr == root) createRoot(curr, newNode, keyForParent);
+                return new Sibling(newNode, keyForParent);
             }
         }
         // node is not a leaf
@@ -72,7 +72,39 @@ public class BplusTree {
             insertToNonLeaf(curr, newChild);
             return null;
         }
-        return null;
+        else {
+            // create new non-leaf node
+            System.out.println("splitting non-leaf node due to overflow");
+            insertToNonLeaf(curr, newChild);
+            Node newNode = new Node(false);
+            int middleKeyIndex = (order+1)/2-1;
+            if((order+1)%2 == 1) middleKeyIndex++;
+            int keyForParent = keys.get(middleKeyIndex);
+            List<Integer> newKeys = new LinkedList<>();
+            int index = middleKeyIndex;
+            // add all the second half keys to the new node (except the middle key)
+            while(keys.size() > index) {
+                if(keys.get(index) != keyForParent) newKeys.add(keys.get(index));
+                keys.remove(index);
+            }
+            List<Node> newPointers = new LinkedList<>();
+            index = middleKeyIndex+1;
+            while(pointers.size() > index) {
+                newPointers.add(pointers.get(index));
+                pointers.remove(index); 
+            }
+            newNode.keys = newKeys;
+            newNode.pointers = newPointers;
+            System.out.println("current non-leaf node: " + curr);
+            System.out.println("sibling non-leaf node: " + newNode);
+            System.out.println("current non-leaf node keys: " + curr.keys);
+            System.out.println("sibling non-leaf node keys: " + newNode.keys);
+            System.out.println("current non-leaf node points to : " + curr.pointers);
+            System.out.println("sibling non-leaf node points to: " + newNode.pointers);
+
+            if(curr == root) createRoot(curr, newNode, keyForParent);
+            return new Sibling(newNode, keyForParent);
+        }
     }
 
     private void insertToNonLeaf(Node curr, Sibling s) {
@@ -118,17 +150,10 @@ public class BplusTree {
     public static void main (String[] args) {
         //Set<Integer> records = generate(10000, 100000);
         //int order = 13;
-        Set<Integer> records = new HashSet<>(Arrays.asList(0,1,2,3,4,5,6,7,8,9,10,11));
+        // sparse tree: insert record from small to large
+        // dense tree: ??
+        List<Integer> records = new ArrayList<>(Arrays.asList(0,2,8,3,4,7,11,9,5,6,1,10,14,12,13,-2,-1));
         BplusTree bt = new BplusTree(records, 4);
-        // bt.insert(root, 2);
-        // bt.insert(root, 5);
-        // bt.insert(root, 1);
-        // bt.insert(root, 7);
-        // bt.insert(root, 6);
-        // bt.insert(root, 9);
-        // bt.insert(root, 4);
-        // bt.insert(root, 3);
-        // bt.insert(root, 10);
     }
 
     //CLASSES
