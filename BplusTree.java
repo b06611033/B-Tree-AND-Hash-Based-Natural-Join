@@ -40,7 +40,7 @@ public class BplusTree {
                 }
                 pointers.add(newNode); // points to splitted node at right
                 newNode.keys = newKeys;
-                newNode.pointers = pointers;
+                newNode.pointers = newPointers;
                 return new Sibling(newNode, firstSecondHalfKey);
             }
         }
@@ -69,34 +69,13 @@ public class BplusTree {
         return records;
     }
 
+    //MAIN FUNCTION
     public static void main (String[] args) {
         Set<Integer> records = generate(10000, 100000);
         int order = 13;
-        Node n = new Node(true);
-        insert(n, 0);
-        System.out.println(n.keys);
-        insert(n, 4);
-        System.out.println(n.keys);
-
-        Sibling s = insert(n, 3);
-        System.out.println(s);
-        System.out.println(n.keys);
-
-        s = insert(n, 8);
-        System.out.println(s);
-        System.out.println(n.keys);
-
-        s = insert(n, 6);
-        System.out.println(s);
-        System.out.println(n.keys);
-        System.out.println(s.n.keys);
-
-        s = insert(n, 2);
-        System.out.println(s);
-        System.out.println(n.keys);
     }
 
-
+    //CLASSES
     static class Node {
         List<Integer> keys;
         List<Node> pointers;
@@ -115,5 +94,49 @@ public class BplusTree {
             this.n = n;
             this.key = key;
         }
+    }
+
+    //TESTS -- convert function and class to static for testing
+    public void testInsertionInLeaf() {
+        Node n = new Node(true);
+        Sibling s;
+        Sibling s2;
+
+        insert(n, 0);
+        System.out.println(n.keys);
+
+        insert(n, 4);
+        System.out.println(n.keys);
+
+        s = insert(n, 3);
+        System.out.println(s);
+        System.out.println(n.keys);
+
+        s = insert(n, 8);
+        System.out.println(s);
+        System.out.println(n.keys);
+
+        s = insert(n, 6);
+        System.out.println(s);
+        System.out.println(n.keys);
+        System.out.println(s.n.keys);
+
+        insert(n, 2);
+        System.out.println(s);
+        System.out.println(n.keys);
+
+        s2 = insert(s.n, 9);
+        s2 = insert(s.n, 5);
+
+        System.out.println("-----");
+        System.out.println("node1 keys: " + n.keys);
+        System.out.println("node2 keys: " + s.n.keys);
+        System.out.println("node3 keys: " + s2.n.keys);
+        System.out.println("node1: " + n);
+        System.out.println("node2: " + s.n);
+        System.out.println("node3: " + s2.n);
+        System.out.println("node1.next: " + n.pointers.get(0));
+        System.out.println("node2.next: " + s.n.pointers.get(0));
+        System.out.println("node3.next: " + s2.n.pointers);
     }
 }
