@@ -197,11 +197,13 @@ public class BplusTree {
         boolean belowMin = false;
         Node child = null;
         Node sibling = null;
+        int currKeyIndex = -1;
         for(int i = 0; i < keys.size(); i++) {
             if(keys.get(i) > record) {
                 belowMin = delete(pointers.get(i), record);
                 child = pointers.get(i);
                 sibling = pointers.get(i+1);
+                currKeyIndex = i;
                 break;
             }
             if(i == keys.size()-1)  {
@@ -210,12 +212,34 @@ public class BplusTree {
             }
         }
         if(!belowMin) return false;
-        else if(child != null && sibling.keys.size() > (order+1)/2){
+        else if(sibling != null && sibling.keys.size() > (order+1)/2){
             System.out.println("Moving child sibling key to child");
             System.out.println("Child keys before redistribution: " + child.keys);
             System.out.println("Child sibling keys before redistribution: " + sibling.keys);
             System.out.println("Current node keys before redistribution: " + curr.keys);
+            int firstSiblingKey = sibling.keys.get(0);
+            if(child.isLeaf) {
+                System.out.println("Redistributing at leaves");
+                child.keys.add(firstSiblingKey);
+                sibling.keys.remove(0);
+                curr.keys.set(currKeyIndex, sibling.keys.get(0));
+            }
+            else {
+                System.out.println("Redistributing at non-leaves");
+                int currKey = curr.keys.get(currKeyIndex);
+                curr.keys.set(currKeyIndex, firstSiblingKey);
+                sibling.keys.remove(0);
+                Node firstSiblingPointer = sibling.pointers.get(0);
+                child.pointers.add(firstSiblingPointer);
+                sibling.pointers.remove(0);
+                child.keys.add(currKey);
+            }
+            System.out.println("Child keys after redistribution: " + child.keys);
+            System.out.println("Child sibling keys after redistribution: " + sibling.keys);
+            System.out.println("Current node keys after redistribution: " + curr.keys);
+            return false;
         }
+        else System.out.println("needs coalescing, but generally not implemented");
         return false;
     }
 
@@ -335,8 +359,6 @@ public class BplusTree {
 
     // ----------------------------------------------------- MAIN FUNCTION -------------------------------------------------------------------------
     public static void main (String[] args) {
-        // sparse tree: insert record from small to large
-        // dense tree: ??
         //List<Integer> records = new ArrayList<>(generate(10000, 100000));
         List<Integer> records = new ArrayList<>(Arrays.asList(0,2,8,3,4,7,11,9,5,6,1,10,14,12,13));
         BplusTree bt = new BplusTree(records, 4);
@@ -346,15 +368,17 @@ public class BplusTree {
         System.out.println("---------------------------------");
         bt.insert(bt.getRoot(), 155001, true);
         System.out.println("---------------------------------");
-        bt.printLeaf();
         //System.out.println(bt.search(7));
         //System.out.println(bt.rangeSearch(154999, 156580));
-        bt.delete(bt.getRoot(), 5);
-        System.out.println("---------------------------------");
-        bt.delete(bt.getRoot(), 4);
+        bt.delete(bt.getRoot(), 14);
         System.out.println("---------------------------------");
         bt.delete(bt.getRoot(), 1);
         System.out.println("---------------------------------");
+        bt.delete(bt.getRoot(), 2);
+        System.out.println("---------------------------------");
+        bt.delete(bt.getRoot(), 10);
+        System.out.println("---------------------------------");
+        bt.printLeaf();
     }
 
     // ----------------------------------------------------- CLASSES -------------------------------------------------------------------------
