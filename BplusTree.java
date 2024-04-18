@@ -177,6 +177,64 @@ public class BplusTree {
 
     // ----------------------------------------------------- DELETE -------------------------------------------------------------------------
 
+    private boolean delete(Node curr, int record) {
+        if(curr.isLeaf) {
+            deleteAtLeaf(curr, record);
+            if(curr == root || curr.keys.size() >= (order+1)/2) {
+                System.out.println("leaf half full OR leaf is root, NO PROBLEM!");
+                return false;
+            }
+            else {
+                System.out.println("leaf less than half full, NEED REDISTRIBUTION!");
+                return true;
+            }
+        }
+        // node is not a leaf
+        System.out.println("current non-leaf node: " + curr);
+        System.out.println("current non-leaf node keys: " + curr.keys);
+        List<Integer> keys = curr.keys;
+        List<Node> pointers = curr.pointers;
+        boolean belowMin = false;
+        Node child = null;
+        Node sibling = null;
+        for(int i = 0; i < keys.size(); i++) {
+            if(keys.get(i) > record) {
+                belowMin = delete(pointers.get(i), record);
+                child = pointers.get(i);
+                sibling = pointers.get(i+1);
+                break;
+            }
+            if(i == keys.size()-1)  {
+                belowMin = delete(pointers.get(i+1), record);
+                child = pointers.get(i+1);
+            }
+        }
+        if(!belowMin) return false;
+        else if(child != null && sibling.keys.size() > (order+1)/2){
+            System.out.println("Moving child sibling key to child");
+            System.out.println("Child keys before redistribution: " + child.keys);
+            System.out.println("Child sibling keys before redistribution: " + sibling.keys);
+            System.out.println("Current node keys before redistribution: " + curr.keys);
+        }
+        return false;
+    }
+
+    private void deleteAtLeaf(Node curr, int record) {
+        System.out.println("deleting key at leaf node: " + curr);
+        System.out.println("keys before deleting at leaf node: " + curr.keys);
+        int index = 0;
+        List<Integer> keys = curr.keys;
+        while(index < keys.size()) {
+            if(keys.get(index) == record) {
+            // don't need to handle pointers because leaf node keys are directly data
+                keys.remove(index);
+                break;
+            }
+            index++;
+        }
+        System.out.println("keys after deleting at leaf node: " + curr.keys);
+    }
+
     // ----------------------------------------------------- SEARCH & RANGE SEARCH -------------------------------------------------------------------------
     private String search(int key) {
         System.out.println("-----searching data---------");
@@ -279,18 +337,24 @@ public class BplusTree {
     public static void main (String[] args) {
         // sparse tree: insert record from small to large
         // dense tree: ??
-        List<Integer> records = new ArrayList<>(generate(10000, 100000));
-        //List<Integer> records = new ArrayList<>(Arrays.asList(0,2,8,3,4,7,11,9,5,6,1,10,14,12,13));
-        BplusTree bt = new BplusTree(records, 24);
+        //List<Integer> records = new ArrayList<>(generate(10000, 100000));
+        List<Integer> records = new ArrayList<>(Arrays.asList(0,2,8,3,4,7,11,9,5,6,1,10,14,12,13));
+        BplusTree bt = new BplusTree(records, 4);
         bt.insert(bt.getRoot(), 15, true);
         System.out.println("---------------------------------");
         bt.insert(bt.getRoot(), 199999, true);
         System.out.println("---------------------------------");
         bt.insert(bt.getRoot(), 155001, true);
         System.out.println("---------------------------------");
-        //bt.printLeaf();
-        System.out.println(bt.search(17));
-        System.out.println(bt.rangeSearch(154999, 156580));
+        bt.printLeaf();
+        //System.out.println(bt.search(7));
+        //System.out.println(bt.rangeSearch(154999, 156580));
+        bt.delete(bt.getRoot(), 5);
+        System.out.println("---------------------------------");
+        bt.delete(bt.getRoot(), 4);
+        System.out.println("---------------------------------");
+        bt.delete(bt.getRoot(), 1);
+        System.out.println("---------------------------------");
     }
 
     // ----------------------------------------------------- CLASSES -------------------------------------------------------------------------
