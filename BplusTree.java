@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class BplusTree {
-    private static Node root;
+    private Node root;
     private int order;
     public BplusTree( List<Integer> records, int order, boolean dense, boolean debug) {
         this.order = order;
@@ -530,6 +530,7 @@ public class BplusTree {
 
     // ----------------------------------------------------- MAIN FUNCTION -------------------------------------------------------------------------
     public static void main (String[] args) {
+        Random rand = new Random();
         // (a)
         List<Integer> records = new ArrayList<>(generate(10000, 100000));
         Set<Integer> keys = new HashSet<>(records);
@@ -542,14 +543,14 @@ public class BplusTree {
         bt3.printLeaf(false);
         BplusTree bt4 = new BplusTree(records, 24, true, false);
         bt4.printLeaf(false);
+        BplusTree bt = bt1;
         // (c1)
-        Random rand = new Random();
         for(int i = 0; i < 2; i++) {
             System.out.println("-------------------------INSERT--------------------------");
             int random = rand.nextInt(100000)+100000;
             while(keys.contains(random)) random = rand.nextInt(100000)+100000;
             System.out.println("inserting: " + random);
-            bt1.insert(bt1.getRoot(), random, true);
+            bt.insert(bt.getRoot(), random, true);
             keys.add(random);
         }
         // (c2)
@@ -558,7 +559,7 @@ public class BplusTree {
             int random = rand.nextInt(100000)+100000;
             while(!keys.contains(random)) random = rand.nextInt(100000)+100000;
             System.out.println("deleting: " + random);
-            bt1.delete(bt1.getRoot(), random);
+            bt.delete(bt.getRoot(), random);
             keys.remove(random);
         }
         // (c3)
@@ -567,7 +568,7 @@ public class BplusTree {
             int random = rand.nextInt(100000)+100000;
             while(keys.contains(random)) random = rand.nextInt(100000)+100000;
             System.out.println("inserting: " + random);
-            bt1.insert(bt1.getRoot(), random, true);
+            bt.insert(bt.getRoot(), random, true);
             keys.add(random);
         }
         for(int i = 0; i < 3; i++) {
@@ -575,7 +576,7 @@ public class BplusTree {
             int random = rand.nextInt(100000)+100000;
             while(!keys.contains(random)) random = rand.nextInt(100000)+100000;
             System.out.println("deleting: " + random);
-            bt1.delete(bt1.getRoot(), random);
+            bt.delete(bt.getRoot(), random);
             keys.remove(random);
         }
         // (c4)
@@ -584,38 +585,18 @@ public class BplusTree {
             int random = rand.nextInt(100000)+100000;
             while(!keys.contains(random)) random = rand.nextInt(100000)+100000;
             System.out.println("searching: " + random);
-            System.out.println(bt1.search(random));
+            System.out.println(bt.search(random));
         }
-        // for(int i = 0; i < 2; i++) {
-        //     System.out.println("-------------------------RANGE SEARCH--------------------------");
-        //     int random1 = rand.nextInt(100000)+100000;
-        //     int random2 = rand.nextInt(100000)+100000;
-        //     while(random1 == random2) random2 = rand.nextInt(100000)+100000;
-        //     int low = Math.min(random1, random2);
-        //     int high = Math.max(random1, random2);
-        //     System.out.println("range searching from " + low + " to " + high);
-        //     System.out.println(bt1.rangeSearch(low, high));
-        // }
-        // bt.printLeaf(false);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // System.out.println(bt.search(104500));
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.insert(bt.getRoot(), 15, true);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.insert(bt.getRoot(), 199999, true);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.insert(bt.getRoot(), 155001, true);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // System.out.println(bt.rangeSearch(154999, 156580));
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.delete(bt.getRoot(), 100010);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.delete(bt.getRoot(), 145000);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.delete(bt.getRoot(), 178000);
-        // System.out.println("---------------------------------------------------------------------------------------");
-        // bt.delete(bt.getRoot(), 199999);
-        // System.out.println("---------------------------------------------------------------------------------------");       
+        for(int i = 0; i < 2; i++) {
+            System.out.println("-------------------------RANGE SEARCH--------------------------");
+            int random1 = rand.nextInt(100000)+100000;
+            int random2 = rand.nextInt(100000)+100000;
+            while(random1 == random2) random2 = rand.nextInt(100000)+100000;
+            int low = Math.min(random1, random2);
+            int high = Math.max(random1, random2);
+            System.out.println(bt.rangeSearch(low, high));
+            System.out.println("range searching from " + low + " to " + high);
+        }    
     }
 
     // ----------------------------------------------------- CLASSES -------------------------------------------------------------------------
@@ -639,6 +620,30 @@ public class BplusTree {
         }
     }
 
-    // ----------------------------------------------------- TESTS -------------------------------------------------------------------------
+    // ----------------------------------------------------- EXTRA TESTS -------------------------------------------------------------------------
+    public static void test() {
+        List<Integer> records = new ArrayList<>(generate(10000, 100000));
+        BplusTree bt = new BplusTree(records, 13, true, false);
+        bt.printLeaf(false);
+        System.out.println("---------------------------------------------------------------------------------------");
+        System.out.println(bt.search(104500));
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.insert(bt.getRoot(), 15, true);
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.insert(bt.getRoot(), 199999, true);
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.insert(bt.getRoot(), 155001, true);
+        System.out.println("---------------------------------------------------------------------------------------");
+        System.out.println(bt.rangeSearch(154999, 156580));
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.delete(bt.getRoot(), 100010);
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.delete(bt.getRoot(), 145000);
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.delete(bt.getRoot(), 178000);
+        System.out.println("---------------------------------------------------------------------------------------");
+        bt.delete(bt.getRoot(), 199999);
+        System.out.println("---------------------------------------------------------------------------------------");   
+    }
 
 }
