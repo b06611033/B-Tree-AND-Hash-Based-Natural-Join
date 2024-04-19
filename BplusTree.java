@@ -3,11 +3,180 @@ import java.util.*;
 public class BplusTree {
     private static Node root;
     private int order;
-    public BplusTree( List<Integer> records, int order) {
+    public BplusTree( List<Integer> records, int order, boolean dense, boolean debug) {
         this.order = order;
-        root = new Node(true);
-        for(int record: records) {
-            insert(root, record, false);
+        Collections.sort(records);
+        if(!dense) {
+            root = new Node(true);
+            for(int record: records) {
+                insert(root, record, false);
+            }
+            return;
+        }
+        //------------------Dense Tree----------------------------
+        List<Node> currNode = new ArrayList<>(); // store nodes created at the current level
+        List<Node> prevNode = new ArrayList<>(); // store nodes of previous level
+        List<Integer> prevMin = new ArrayList<>(); // store minimum value in each previous level nodes subtree
+        List<Integer> currMin = new ArrayList<>(); // store minimum value in each current level nodes subtree
+        int size = records.size();
+        int num = order;
+        while(true) {
+        // Calculating number of full nodes & non-full nodes for current level
+            System.out.println("------------new level--------");
+            if(prevNode.size() != 0) {
+                size = prevNode.size();
+                num = order+1;
+            }
+            int fullNodeNum = size/num;
+            int halfNodeNum = 0;
+            int remainder = size%num;
+            if(size < num) {
+                halfNodeNum = 1;
+            }
+            else if(prevNode.size()==0) {
+                int minKey = (order+1)/2;
+                if(remainder != 0 && remainder < minKey) {
+                    fullNodeNum--;
+                    halfNodeNum = 2;
+                }
+                else if(remainder != 0) halfNodeNum++;
+            }
+            else {
+                int minPointers = (order+1)/2;
+                if(order%2 == 0) minPointers++;
+                if(remainder != 0 && remainder < minPointers) {
+                    fullNodeNum--;
+                    halfNodeNum = 2;
+                }
+                else if(remainder != 0) halfNodeNum++;
+            }
+            if(debug) {
+                System.out.println("remainder: " + remainder);
+                System.out.println("full node number: " + fullNodeNum);
+                System.out.println("half node number: " + halfNodeNum);
+            }
+        //-------------Creating nodes for current level-------------------
+            int count = 0;
+            if(prevNode.size()==0) {
+                Node next = new Node(true);
+                for(int i = 0; i < fullNodeNum; i++) {
+                    Node curr = next;
+                    for(int j = 0; j < order; j++) {
+                        curr.keys.add(records.get(count));
+                        count++;
+                    }
+                    next = new Node(true);
+                    if(remainder > 0 || i < fullNodeNum-1) curr.pointers.add(next);
+                    currNode.add(curr);
+                    currMin.add(curr.keys.get(0));
+                }
+                if(halfNodeNum == 1) {
+                    Node curr = next;
+                    for(int j = 0; j < remainder; j++) {
+                        curr.keys.add(records.get(count));
+                        count++;
+                    }
+                    currNode.add(curr);
+                    currMin.add(curr.keys.get(0));
+                }
+                else if(halfNodeNum == 2) {
+                    int firstNodeSize = (order+remainder)/2;
+                    int secondNodeSize = firstNodeSize + (order+remainder)%2;
+                    Node curr = next;
+                    for(int j = 0; j < firstNodeSize; j++) {
+                        curr.keys.add(records.get(count));
+                        count++;
+                    }
+                    next = new Node(true);
+                    curr.pointers.add(next);
+                    currNode.add(curr);
+                    currMin.add(curr.keys.get(0));
+                    curr = next;
+                    for(int j = 0; j < secondNodeSize; j++) {
+                        curr.keys.add(records.get(count));
+                        count++;
+                    }
+                    currNode.add(curr);
+                    currMin.add(curr.keys.get(0));
+                }
+            }
+            else {
+                for(int i = 0; i < fullNodeNum; i++) {
+                    int min = Integer.MAX_VALUE;
+                    Node curr = new Node(false);
+                    for(int j = 0; j < num; j++) {
+                        curr.pointers.add(prevNode.get(count));
+                        min = Math.min(min, prevMin.get(count));
+                        if(j < num-1) {
+                            curr.keys.add(prevMin.get(count+1));
+                        }
+                        count++;
+                    }
+                    currMin.add(min);
+                    currNode.add(curr);
+                }
+                if(halfNodeNum == 1) {
+                    int min = Integer.MAX_VALUE;
+                    Node curr = new Node(false);
+                    for(int j = 0; j < remainder; j++) {
+                        curr.pointers.add(prevNode.get(count));
+                        min = Math.min(min, prevMin.get(count));
+                        if(j < remainder-1) {
+                            curr.keys.add(prevMin.get(count+1));
+                        }
+                        count++;
+                    }
+                    currMin.add(min);
+                    currNode.add(curr);
+                }
+                else if(halfNodeNum == 2) {
+                    int firstNodeSize = (num+remainder)/2;
+                    int secondNodeSize = firstNodeSize + (num+remainder)%2;
+                    int min = Integer.MAX_VALUE;
+                    Node curr = new Node(false);
+                    for(int j = 0; j < firstNodeSize; j++) {
+                        curr.pointers.add(prevNode.get(count));
+                        min = Math.min(min, prevMin.get(count));
+                        if(j < firstNodeSize-1) {
+                            curr.keys.add(prevMin.get(count+1));
+                        }
+                        count++;
+                    }
+                    currMin.add(min);
+                    currNode.add(curr);
+                    min = Integer.MAX_VALUE;
+                    curr = new Node(false);
+                    for(int j = 0; j < secondNodeSize; j++) {
+                        curr.pointers.add(prevNode.get(count));
+                        min = Math.min(min, prevMin.get(count));
+                        if(j < secondNodeSize-1) {
+                            curr.keys.add(prevMin.get(count+1));
+                        }
+                        count++;
+                    }
+                    currMin.add(min);
+                    currNode.add(curr);
+                }
+            }
+        //--------------Check if the current level is the root------------------
+            if(debug) {
+                for(Node n: currNode) {
+                    System.out.println("node: " + n);
+                    System.out.println("node keys: " + n.keys);
+                    System.out.println("node pointers: " + n.pointers);
+                }
+                for(int m: currMin) {
+                    System.out.println("min: " + m);
+                }
+            }
+            if(currNode.size()==1) {
+                root = currNode.get(0);
+                break;
+            }
+            prevNode = currNode;
+            prevMin = currMin;
+            currNode = new ArrayList<>();
+            currMin = new ArrayList<>();
         }
     }
 
@@ -261,7 +430,6 @@ public class BplusTree {
 
     // ----------------------------------------------------- SEARCH & RANGE SEARCH -------------------------------------------------------------------------
     private String search(int key) {
-        System.out.println("-----searching data---------");
         Node curr = root;
         while(!curr.isLeaf) {
             System.out.println("current non-leaf node is: " + curr);
@@ -289,7 +457,6 @@ public class BplusTree {
     }
 
     private List<Integer> rangeSearch(int low, int high) {
-        System.out.println("-----range searching data---------");
         Node curr = root;
         while(!curr.isLeaf) {
             System.out.println("current non-leaf node is: " + curr);
@@ -325,19 +492,23 @@ public class BplusTree {
     }
 
     // ----------------------------------------------------- HELPER FUNCTIONS -------------------------------------------------------------------------
-    public void printLeaf() {
-        System.out.println("-----printing leaf nodes---------");
+    public void printLeaf(boolean debug) {
+        System.out.println("-----printing leaf node information---------");
         Node curr = root;
         while(!curr.isLeaf) curr = curr.pointers.get(0);
         int count = 1;
         while(curr.pointers.size() > 0) {
-            System.out.println("current node is: " + curr);
-            System.out.println("keys in the node are: " + curr.keys);
+            if(debug) {
+                System.out.println("current node is: " + curr);
+                System.out.println("keys in the node are: " + curr.keys);
+            }
             curr = curr.pointers.get(0);
             count++;
         }
-        System.out.println("current node is: " + curr);
-        System.out.println("keys in the node are: " + curr.keys);
+        if(debug) {
+            System.out.println("current node is: " + curr);
+            System.out.println("keys in the node are: " + curr.keys);
+        }
         System.out.println("total number of leaves: " + count);
         System.out.println("-----finished printing---------");
     }
@@ -359,26 +530,92 @@ public class BplusTree {
 
     // ----------------------------------------------------- MAIN FUNCTION -------------------------------------------------------------------------
     public static void main (String[] args) {
-        //List<Integer> records = new ArrayList<>(generate(10000, 100000));
-        List<Integer> records = new ArrayList<>(Arrays.asList(0,2,8,3,4,7,11,9,5,6,1,10,14,12,13));
-        BplusTree bt = new BplusTree(records, 4);
-        bt.insert(bt.getRoot(), 15, true);
-        System.out.println("---------------------------------");
-        bt.insert(bt.getRoot(), 199999, true);
-        System.out.println("---------------------------------");
-        bt.insert(bt.getRoot(), 155001, true);
-        System.out.println("---------------------------------");
-        //System.out.println(bt.search(7));
-        //System.out.println(bt.rangeSearch(154999, 156580));
-        bt.delete(bt.getRoot(), 14);
-        System.out.println("---------------------------------");
-        bt.delete(bt.getRoot(), 1);
-        System.out.println("---------------------------------");
-        bt.delete(bt.getRoot(), 2);
-        System.out.println("---------------------------------");
-        bt.delete(bt.getRoot(), 10);
-        System.out.println("---------------------------------");
-        bt.printLeaf();
+        // (a)
+        List<Integer> records = new ArrayList<>(generate(10000, 100000));
+        Set<Integer> keys = new HashSet<>(records);
+        // (b)
+        BplusTree bt1 = new BplusTree(records, 13, false, false);
+        bt1.printLeaf(false);
+        BplusTree bt2 = new BplusTree(records, 13, true, false);
+        bt2.printLeaf(false);
+        BplusTree bt3 = new BplusTree(records, 24, false, false);
+        bt3.printLeaf(false);
+        BplusTree bt4 = new BplusTree(records, 24, true, false);
+        bt4.printLeaf(false);
+        // (c1)
+        Random rand = new Random();
+        for(int i = 0; i < 2; i++) {
+            System.out.println("-------------------------INSERT--------------------------");
+            int random = rand.nextInt(100000)+100000;
+            while(keys.contains(random)) random = rand.nextInt(100000)+100000;
+            System.out.println("inserting: " + random);
+            bt1.insert(bt1.getRoot(), random, true);
+            keys.add(random);
+        }
+        // (c2)
+        for(int i = 0; i < 2; i++) {
+            System.out.println("-------------------------DELETE--------------------------");
+            int random = rand.nextInt(100000)+100000;
+            while(!keys.contains(random)) random = rand.nextInt(100000)+100000;
+            System.out.println("deleting: " + random);
+            bt1.delete(bt1.getRoot(), random);
+            keys.remove(random);
+        }
+        // (c3)
+        for(int i = 0; i < 2; i++) {
+            System.out.println("-------------------------INSERT--------------------------");
+            int random = rand.nextInt(100000)+100000;
+            while(keys.contains(random)) random = rand.nextInt(100000)+100000;
+            System.out.println("inserting: " + random);
+            bt1.insert(bt1.getRoot(), random, true);
+            keys.add(random);
+        }
+        for(int i = 0; i < 3; i++) {
+            System.out.println("-------------------------DELETE--------------------------");
+            int random = rand.nextInt(100000)+100000;
+            while(!keys.contains(random)) random = rand.nextInt(100000)+100000;
+            System.out.println("deleting: " + random);
+            bt1.delete(bt1.getRoot(), random);
+            keys.remove(random);
+        }
+        // (c4)
+        for(int i = 0; i < 3; i++) {
+            System.out.println("-------------------------SEARCH--------------------------");
+            int random = rand.nextInt(100000)+100000;
+            while(!keys.contains(random)) random = rand.nextInt(100000)+100000;
+            System.out.println("searching: " + random);
+            System.out.println(bt1.search(random));
+        }
+        // for(int i = 0; i < 2; i++) {
+        //     System.out.println("-------------------------RANGE SEARCH--------------------------");
+        //     int random1 = rand.nextInt(100000)+100000;
+        //     int random2 = rand.nextInt(100000)+100000;
+        //     while(random1 == random2) random2 = rand.nextInt(100000)+100000;
+        //     int low = Math.min(random1, random2);
+        //     int high = Math.max(random1, random2);
+        //     System.out.println("range searching from " + low + " to " + high);
+        //     System.out.println(bt1.rangeSearch(low, high));
+        // }
+        // bt.printLeaf(false);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // System.out.println(bt.search(104500));
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.insert(bt.getRoot(), 15, true);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.insert(bt.getRoot(), 199999, true);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.insert(bt.getRoot(), 155001, true);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // System.out.println(bt.rangeSearch(154999, 156580));
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.delete(bt.getRoot(), 100010);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.delete(bt.getRoot(), 145000);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.delete(bt.getRoot(), 178000);
+        // System.out.println("---------------------------------------------------------------------------------------");
+        // bt.delete(bt.getRoot(), 199999);
+        // System.out.println("---------------------------------------------------------------------------------------");       
     }
 
     // ----------------------------------------------------- CLASSES -------------------------------------------------------------------------
