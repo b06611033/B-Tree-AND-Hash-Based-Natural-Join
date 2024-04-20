@@ -22,7 +22,6 @@ public class BplusTree {
         int num = order;
         while(true) {
         // Calculating number of full nodes & non-full nodes for current level
-            System.out.println("------------new level--------");
             if(prevNode.size() != 0) {
                 size = prevNode.size();
                 num = order+1;
@@ -510,7 +509,6 @@ public class BplusTree {
             System.out.println("keys in the node are: " + curr.keys);
         }
         System.out.println("total number of leaves: " + count);
-        System.out.println("-----finished printing---------");
     }
 
     public Node getRoot() {
@@ -543,7 +541,7 @@ public class BplusTree {
         bt3.printLeaf(false);
         BplusTree bt4 = new BplusTree(records, 24, true, false);
         bt4.printLeaf(false);
-        BplusTree bt = bt1;
+        BplusTree bt = bt2;
         // (c1)
         for(int i = 0; i < 2; i++) {
             System.out.println("-------------------------INSERT--------------------------");
