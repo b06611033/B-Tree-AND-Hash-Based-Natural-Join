@@ -3,8 +3,10 @@ import java.util.*;
 public class BplusTree {
     private Node root;
     private int order;
+    boolean dense;
     public BplusTree( List<Integer> records, int order, boolean dense, boolean debug) {
         this.order = order;
+        this.dense = dense;
         Collections.sort(records);
         if(!dense) {
             root = new Node(true);
@@ -209,10 +211,10 @@ public class BplusTree {
                 }
                 List<Node> newPointers = new LinkedList<>();
                 List<Node> pointers = curr.pointers;
-                // leaf node only has at most 1 pointer pointing to the right leaf 
+                // leaf node only has at most 1 pointer pointing to the right leaf
                 if(pointers.size() > 0) {
                     newPointers.add(pointers.get(0));
-                    pointers.remove(0); 
+                    pointers.remove(0);
                 }
                 pointers.add(newNode); // points to splitted node at right
                 newNode.keys = newKeys;
@@ -272,7 +274,7 @@ public class BplusTree {
             index = middleKeyIndex+1;
             while(pointers.size() > index) {
                 newPointers.add(pointers.get(index));
-                pointers.remove(index); 
+                pointers.remove(index);
             }
             newNode.keys = newKeys;
             newNode.pointers = newPointers;
@@ -493,6 +495,7 @@ public class BplusTree {
     // ----------------------------------------------------- HELPER FUNCTIONS -------------------------------------------------------------------------
     public void printLeaf(boolean debug) {
         System.out.println("-----printing leaf node information---------");
+        System.out.println("Tree order: " + order + " Dense: " + dense);
         Node curr = root;
         while(!curr.isLeaf) curr = curr.pointers.get(0);
         int count = 1;
@@ -532,6 +535,7 @@ public class BplusTree {
         // (a)
         List<Integer> records = new ArrayList<>(generate(10000, 100000));
         Set<Integer> keys = new HashSet<>(records);
+        //System.out.println(records);
         // (b)
         BplusTree bt1 = new BplusTree(records, 13, false, false);
         bt1.printLeaf(false);
@@ -577,7 +581,7 @@ public class BplusTree {
             bt.delete(bt.getRoot(), random);
             keys.remove(random);
         }
-        // (c4)
+        //(c4)
         for(int i = 0; i < 3; i++) {
             System.out.println("-------------------------SEARCH--------------------------");
             int random = rand.nextInt(100000)+100000;
@@ -594,7 +598,7 @@ public class BplusTree {
             int high = Math.max(random1, random2);
             System.out.println(bt.rangeSearch(low, high));
             System.out.println("range searching from " + low + " to " + high);
-        }    
+        }
     }
 
     // ----------------------------------------------------- CLASSES -------------------------------------------------------------------------
@@ -641,7 +645,7 @@ public class BplusTree {
         bt.delete(bt.getRoot(), 178000);
         System.out.println("---------------------------------------------------------------------------------------");
         bt.delete(bt.getRoot(), 199999);
-        System.out.println("---------------------------------------------------------------------------------------");   
+        System.out.println("---------------------------------------------------------------------------------------");
     }
 
 }

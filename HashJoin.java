@@ -117,7 +117,7 @@ public class HashJoin {
     }
 
     public static void main (String[] args) { 
-        HashJoin hj = new HashJoin(1000);
+        HashJoin hj = new HashJoin(1200);
         Block[] memory = hj.memory;
         //----send relation S to memory => hash => write back to disk----
         int[][] relationS = hj.S;
